@@ -36,9 +36,41 @@ app.post('/', async (req,res) =>{
          userId: user._id,
          token
       })
-      res.send(token)
+      res.send({
+         token,
+         name:user.name
+      })
    }else{
-      //nao encontrado
+      res.sendStatus(403)
+   }
+})
+
+app.post('/income', async (req,res) => {
+   const {amount , description} = req.body
+   try {
+      await db.collection('transactions').insertOne({
+         amount,
+         description,
+         type:'income'
+      })
+      res.sendStatus(201)
+   } catch (error) {
+      console.log(error.message)
+      res.sendStatus(500)
+   }
+})
+app.post('/expense', async (req,res) => {
+   const {amount , description} = req.body
+   try {
+      await db.collection('transactions').insertOne({
+         amount,
+         description,
+         type:'expense'
+      })
+      res.sendStatus(201)
+   } catch (error) {
+      console.log(error.message)
+      res.sendStatus(500)
    }
 })
 
