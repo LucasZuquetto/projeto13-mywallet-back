@@ -3,6 +3,7 @@ import express from "express";
 import { MongoClient } from "mongodb";
 import cors from 'cors'
 import {v4 as uuidv4} from 'uuid'
+import dayjs from 'dayjs'
 
 dotenv.config();
 
@@ -47,11 +48,20 @@ app.post('/', async (req,res) =>{
 
 app.post('/income', async (req,res) => {
    const {amount , description} = req.body
+   const {authorization} = req.header
+   const token = authorization?.replace('Bearer ', '')
+   if(!token) return res.sendStatus(401)
+   
    try {
+      const session = await db.collection('sessions').findOne({token})
+   if(!session){
+      return res.sendStatus(401)
+   }
       await db.collection('transactions').insertOne({
          amount,
          description,
-         type:'income'
+         type:'income',
+         date:dayjs().format('DD/MM')
       })
       res.sendStatus(201)
    } catch (error) {
@@ -65,9 +75,20 @@ app.post('/expense', async (req,res) => {
       await db.collection('transactions').insertOne({
          amount,
          description,
-         type:'expense'
+         type:'expense',
+         date:dayjs().format("DD/MM")
       })
       res.sendStatus(201)
+   } catch (error) {
+      console.log(error.message)
+      res.sendStatus(500)
+   }
+})
+
+app.get('/home', async (req,res) =>{
+   try {
+      const transactions = await db.collection('transactions').find().toArray()
+      res.send(transactions)
    } catch (error) {
       console.log(error.message)
       res.sendStatus(500)
