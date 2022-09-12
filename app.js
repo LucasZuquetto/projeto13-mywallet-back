@@ -48,15 +48,8 @@ app.post('/', async (req,res) =>{
 
 app.post('/income', async (req,res) => {
    const {amount , description} = req.body
-   const {authorization} = req.header
-   const token = authorization?.replace('Bearer ', '')
-   if(!token) return res.sendStatus(401)
    
    try {
-      const session = await db.collection('sessions').findOne({token})
-   if(!session){
-      return res.sendStatus(401)
-   }
       await db.collection('transactions').insertOne({
          amount,
          description,
